@@ -1,0 +1,11 @@
+*.8
+*.6
+_test*
+_obj*
+8.out
+6.out
+_cgo1_.o
+_cgo_export.h
+_cgo_export.o
+_cgo_main.o
+*.cgo2.o

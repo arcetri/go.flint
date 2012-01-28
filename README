@@ -1,0 +1,12 @@
+A simple Go wrapper for parts of flint2
+(http://www.flintlib.org).
+
+The code is GPL 2 licensed (as flint2 itself is GPL licensed).
+The text of the GPL can be found in the file GPL.
+
+Currently only some functions  are wrapped. It should be
+straight-forward to add other functions when the need arises.
+
+There is currently basically no test code. This will change.
+
+We assume a 'weekly' build of Go.
