@@ -9,4 +9,14 @@ straight-forward to add other functions when the need arises.
 
 There is currently basically no test code. This will change.
 
-We assume a 'weekly' build of Go.
+To compile and use flint.go you need the FLINT2, MPIR and MPFR
+libraries and header files installed in places where gcc and
+ld will find them.
+
+To run an example change to one of the subdirectories of examples/
+and do
+
+  go build .
+
+This should compile the necessary parts of flint.go and produce a
+binary program.
