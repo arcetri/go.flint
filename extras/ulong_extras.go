@@ -19,45 +19,40 @@ import (
 // TODO(fs) Compare with FLINT_BITS and MPIR's NumberOfBits macro.
 // Maybe these should be functions that take int64 and uint64 arguments.
 
-// type Long int32
-// type Long int64
-// type Ulong uint32
-// type Ulong uint64
-
-
-// A Ulong represents GMP/MPIR's mp_limb_t. This can be 64 or 32 bits,
-// depending on the architecture.
-type Ulong struct {
-	z C.mp_limb_t
-	// n C.mp_limb_t
-	// preinv C.mp_limb_t
+func mp_t(n uint64) C.mp_limb_t {
+     return C.mp_limb_t(n)
 }
 
-// A Long functions like a Ulong but for the mp_limb_signed_t.
-type Long struct {
-	z C.mp_limb_signed_t
+func ui_t(n C.mp_limb_t) uint64 {
+     return uint64(n)
 }
 
-func NewUlong(z uint64) Ulong {
-	return Ulong{C.mp_limb_t(z)}
+func mp_st(n int64) C.mp_limb_signed_t {
+     return C.mp_limb_signed_t(n)
 }
 
-func (z Ulong) Pow(n uint64) Ulong {
-	return Ulong{C.n_pow(z.z, C.ulong(n))}
+func si_t(n C.mp_limb_signed_t) int64 {
+     return int64(n)
 }
 
-func (z Ulong) Mod2Preinv() {}
-
-func (z Ulong) MulMod2Preinv() {}
-
-func (z Ulong) NextPrime(proved bool) Ulong {
-	if proved {
-		return Ulong{C.n_nextprime(z.z, C.int(1))}
-	}
-	return Ulong{C.n_nextprime(z.z, C.int(0))}
+func Pow(z, n uint64) uint64 {
+	return ui_t(C.n_pow(mp_t(z), C.ulong(n)))
 }
 
-func Jacobi(x Long, y Ulong) int {
-	return int(C.n_jacobi(x.z, y.z))
+func Mod2Preinv(z uint64) uint64 {
+     return 0
+}
+
+func MulMod2Preinv(z uint64) {}
+
+func NextPrime(z uint64, proved bool) uint64 {
+     if proved {
+     	return ui_t(C.n_nextprime(mp_t(z), C.int(1)))
+     }
+     return ui_t(C.n_nextprime(mp_t(z), C.int(0)))
+}
+
+func Jacobi(x int64, y uint64) int {
+     return int(C.n_jacobi(mp_st(x), mp_t(y)))
 }
 
