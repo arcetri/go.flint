@@ -20,3 +20,7 @@ import (
 // integer coefficients.
 type IntPoly C.fmpz_poly_struct
 
+//TODO:
+// - NewPoly
+// - SetString
+// 
