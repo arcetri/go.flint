@@ -35,7 +35,9 @@ func si_t(n C.mp_limb_signed_t) int64 {
      return int64(n)
 }
 
-func Preinvert2() {}
+func Preinvert(n uint64) uint64 {
+	return ui_t(C.n_preinvert_limb(mp_t(n)))
+}
 
 func MulMod2() {}
 
@@ -68,8 +70,13 @@ func Jacobi(x int64, y uint64) int {
      return int(C.n_jacobi(mp_st(x), mp_t(y)))
 }
 
-mp_limb_t n_addmod ( mp_limb_t a , mp_limb_t b , mp_limb_t n )
-Returns (a + b) mod n.
+func AddMod(a, b, n uint64) uint64 {
+	return ui_t(C.n_addmod (mp_t(a) , mp_t(b) , mp_t(n)))
+}
+
+// Returns (a + b) mod n.
+
+/*
 mp_limb_t n_submod ( mp_limb_t a , mp_limb_t b , mp_limb_t n )
 Returns (a \u2212 b) mod n.
 mp_limb_t n_invmod ( mp_limb_t x , mp_limb_t y )
@@ -78,11 +85,13 @@ We require 0 \u2264 x < y.
 Specifically, when x is coprime to y, a is the inverse of x in Z/yZ.
 This is merely an adaption of the extended Euclidean algorithm with appropriate nor-
 malisation.
+*/
 
-mp_limb_t n_powmod2_preinv ( mp_limb_t a , mp_limb_signed_t
-exp , mp_limb_t n , mp_limb_t ninv )
-24.10 Prime number generation and counting
-219
+func PowMod2Preinv(a uint64, exp int64, n, preinv uint64) uint64 {
+	return ui_t(C.n_powmod2_preinv(mp_t(a), mp_st(exp), mp_t(n), mp_t(preinv)))
+}
+
+/*
 Returns (a^exp) % n given a precomputed inverse of n computed by n_preinvert_limb().
 We require 0 ≤ a < n, but there are no restrictions on n or on exp, i.e. it can be negative.
 
@@ -90,4 +99,4 @@ mp_limb_t n_sqrtmod ( mp_limb_t a , mp_limb_t p )
 Computes a square root of a modulo p.
 Assumes that p is a prime and that a is reduced modulo p. Returns 0 if a is a quadratic
 non-residue modulo p.
-
+*/
