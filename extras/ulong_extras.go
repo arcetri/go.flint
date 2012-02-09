@@ -2,7 +2,7 @@
 // Use of this source code is governed by the GNU General
 // Public License version 2 (or any later version).
 
-package flint
+package extras
 
 // #cgo LDFLAGS: -lflint -lmpir -lmpfr -lm
 // #include <stdlib.h>
@@ -19,45 +19,84 @@ import (
 // TODO(fs) Compare with FLINT_BITS and MPIR's NumberOfBits macro.
 // Maybe these should be functions that take int64 and uint64 arguments.
 
-// type Long int32
-// type Long int64
-// type Ulong uint32
-// type Ulong uint64
-
-
-// A Ulong represents GMP/MPIR's mp_limb_t. This can be 64 or 32 bits,
-// depending on the architecture.
-type Ulong struct {
-	z C.mp_limb_t
-	// n C.mp_limb_t
-	// preinv C.mp_limb_t
+func mp_t(n uint64) C.mp_limb_t {
+     return C.mp_limb_t(n)
 }
 
-// A Long functions like a Ulong but for the mp_limb_signed_t.
-type Long struct {
-	z C.mp_limb_signed_t
+func ui_t(n C.mp_limb_t) uint64 {
+     return uint64(n)
 }
 
-func NewUlong(z uint64) Ulong {
-	return Ulong{C.mp_limb_t(z)}
+func mp_st(n int64) C.mp_limb_signed_t {
+     return C.mp_limb_signed_t(n)
 }
 
-func (z Ulong) Pow(n uint64) Ulong {
-	return Ulong{C.n_pow(z.z, C.ulong(n))}
+func si_t(n C.mp_limb_signed_t) int64 {
+     return int64(n)
 }
 
-func (z Ulong) Mod2Preinv() {}
-
-func (z Ulong) MulMod2Preinv() {}
-
-func (z Ulong) NextPrime(proved bool) Ulong {
-	if proved {
-		return Ulong{C.n_nextprime(z.z, C.int(1))}
-	}
-	return Ulong{C.n_nextprime(z.z, C.int(0))}
+func Preinvert(n uint64) uint64 {
+	return ui_t(C.n_preinvert_limb(mp_t(n)))
 }
 
-func Jacobi(x Long, y Ulong) int {
-	return int(C.n_jacobi(x.z, y.z))
+func MulMod2() {}
+
+func FLog() {}
+
+func CLog() {}
+
+func Pow(z, n uint64) uint64 {
+	return ui_t(C.n_pow(mp_t(z), C.ulong(n)))
 }
 
+// Mod2Preinv returns a mod n given a precomputed inverse of n computed by Preinvert().
+func Mod2Preinv(a, n, preinv uint64) uint64 {
+	return ui_t(C.n_mod2_preinv (mp_t(a) , mp_t(n) , mp_t(preinv)))
+}
+
+// MulMod2Preinv returns ab mod n given a precomputed inverse of n computed by Preinvert().
+func MulMod2Preinv(a, b, n, preinv uint64) uint64 {
+	return ui_t(C.n_mulmod2_preinv(mp_t(a) , mp_t(b) , mp_t(n) , mp_t(preinv)))
+}
+
+func NextPrime(z uint64, proved bool) uint64 {
+     if proved {
+     	return ui_t(C.n_nextprime(mp_t(z), C.int(1)))
+     }
+     return ui_t(C.n_nextprime(mp_t(z), C.int(0)))
+}
+
+func Jacobi(x int64, y uint64) int {
+     return int(C.n_jacobi(mp_st(x), mp_t(y)))
+}
+
+func AddMod(a, b, n uint64) uint64 {
+	return ui_t(C.n_addmod (mp_t(a) , mp_t(b) , mp_t(n)))
+}
+
+// Returns (a + b) mod n.
+
+/*
+mp_limb_t n_submod ( mp_limb_t a , mp_limb_t b , mp_limb_t n )
+Returns (a \u2212 b) mod n.
+mp_limb_t n_invmod ( mp_limb_t x , mp_limb_t y )
+Returns a value a such that 0 \u2264 a < y and ax = gcd(x, y) mod y, when this is defined.
+We require 0 \u2264 x < y.
+Specifically, when x is coprime to y, a is the inverse of x in Z/yZ.
+This is merely an adaption of the extended Euclidean algorithm with appropriate nor-
+malisation.
+*/
+
+func PowMod2Preinv(a uint64, exp int64, n, preinv uint64) uint64 {
+	return ui_t(C.n_powmod2_preinv(mp_t(a), mp_st(exp), mp_t(n), mp_t(preinv)))
+}
+
+/*
+Returns (a^exp) % n given a precomputed inverse of n computed by n_preinvert_limb().
+We require 0 ≤ a < n, but there are no restrictions on n or on exp, i.e. it can be negative.
+
+mp_limb_t n_sqrtmod ( mp_limb_t a , mp_limb_t p )
+Computes a square root of a modulo p.
+Assumes that p is a prime and that a is reduced modulo p. Returns 0 if a is a quadratic
+non-residue modulo p.
+*/
