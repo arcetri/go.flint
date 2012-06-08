@@ -1,4 +1,4 @@
-// Copyright 2012 flint.go authors. All rights reserved.
+// Copyright 2012 go.flint authors. All rights reserved.
 // Use of this source code is governed by the GNU General
 // Public License version 2 (or any later version).
 
@@ -11,7 +11,7 @@ package arith
 // #include <arith.h>
 import "C"
 
-import "github.com/frithjof-schulze/flint.go/fmpz"
+import "github.com/frithjof-schulze/go.flint/fmpz"
 
 // RamanujanTau sets z to the Ramanujan tau function of n,
 // which is the coefficient of q^n in the series expansion

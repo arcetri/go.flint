@@ -30,8 +30,8 @@ import (
 	"fmt"
 	"flag"
 	"os"
-	"github.com/frithjof-schulze/flint.go/fmpz"
-	"github.com/frithjof-schulze/flint.go/arith"
+	"github.com/frithjof-schulze/go.flint/fmpz"
+	"github.com/frithjof-schulze/go.flint/arith"
 )
 
 func main() {

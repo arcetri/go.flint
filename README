@@ -9,7 +9,7 @@ straight-forward to add other functions when the need arises.
 
 There is currently basically no test code. This will change.
 
-To compile and use flint.go you need the FLINT2, MPIR and MPFR
+To compile and use go.flint you need the FLINT2, MPIR and MPFR
 libraries and header files installed in places where gcc and
 ld will find them.
 
@@ -18,5 +18,5 @@ and do
 
   go build .
 
-This should compile the necessary parts of flint.go and produce a
+This should compile the necessary parts of go.flint and produce a
 binary program.

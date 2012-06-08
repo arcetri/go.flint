@@ -11,7 +11,7 @@ package fmpq
 import "C"
 
 import (
-	"github.com/frithjof-schulze/flint.go/fmpz"
+	"github.com/frithjof-schulze/go.flint/fmpz"
 )
 
 // An Rat represents a multi-precision rational number.  The

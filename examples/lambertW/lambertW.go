@@ -1,14 +1,14 @@
-// A flint.go example: Lambert W function power series.
+// A go.flint example: Lambert W function power series.
 
 // This is basically code from Fredrik Johansson's blog March 11, 2011
 // http://fredrikj.net/blog/2011/03/a-flint-example-lambert-w-function-power-series/
-// translated to Go and flint.go.
+// translated to Go and go.flint.
 
 package main
 
 import (
 	"fmt"
-	mp "github.com/frithjof-schulze/flint.go/fmpq"
+	mp "github.com/frithjof-schulze/go.flint/fmpq"
 )
 
 // As today’s example, let us implement the Lambert W
