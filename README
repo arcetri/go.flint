@@ -1,7 +1,7 @@
 A simple Go wrapper for parts of flint2
 (http://www.flintlib.org).
 
-The code is GPL 2 licensed (as flint2 itself is GPL licensed).
+The code is GPL 2+ licensed (as flint2 itself is GPL licensed).
 The text of the GPL can be found in the file GPL.
 
 Currently only some functions  are wrapped. It should be
@@ -18,5 +18,5 @@ and do
 
   go build .
 
-This should compile the necessary parts of go.flint and produce a
-binary program.
+This should compile the necessary parts of go.flint and
+produce an executable program.
