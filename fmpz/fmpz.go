@@ -57,12 +57,12 @@ func (z *Int) SetInt64(x int64) *Int {
 // SetString returns an error if s cannot be parsed or the base is invalid.
 func (z *Int) SetString(s string, base int) error {
 	if base < 2 || base > 36 {
-		return os.EINVAL
+		return os.ErrInvalid
 	}
 	p := C.CString(s)
 	defer C.free(unsafe.Pointer(p))
 	if C.fmpz_set_str((*C.fmpz)(z), p, C.int(base)) < 0 {
-		return os.EINVAL
+		return os.ErrInvalid
 	}
 	return nil
 }
