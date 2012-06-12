@@ -4,14 +4,14 @@ A simple Go wrapper for parts of flint2
 The code is GPL 2+ licensed (as flint2 itself is GPL licensed).
 The text of the GPL can be found in the file GPL.
 
-Currently only some functions  are wrapped. It should be
+Currently only some functions are wrapped. It should be
 straight-forward to add other functions when the need arises.
 
 There is currently basically no test code. This will change.
 
-To compile and use go.flint you need the FLINT2, MPIR and MPFR
-libraries and header files installed in places where gcc and
-ld will find them.
+To compile and use go.flint you need to have the FLINT2, MPIR
+and MPFR libraries and header files installed in places where
+gcc and ld will find.
 
 To run an example change to one of the subdirectories of examples/
 and do
