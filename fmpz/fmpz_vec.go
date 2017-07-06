@@ -24,5 +24,5 @@ type Vec struct {
 // func NewPoly(x int64) *Poly { return new(Poly).SetInt64(x) }
 
 func (z *Vec) doinit(n int64) {
-	z.v = C._fmpz_vec_init(C.long(n))
+	z.v = C._fmpz_vec_init(C.slong(n))
 }
