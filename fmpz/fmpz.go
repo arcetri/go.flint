@@ -4,16 +4,19 @@
 
 package fmpz
 
-// #cgo LDFLAGS: -lflint -lmpir -lmpfr -lm
-// #include <stdlib.h>
-// #include <flint.h>
-// #include <fmpz.h>
-import "C"
-
 import (
-	"os"
 	"unsafe"
+	"fmt"
 )
+
+/*
+#cgo LDFLAGS: -lflint -lmpir -lmpfr -lm
+#cgo CFLAGS: -I /usr/local/include/flint
+#include <stdlib.h>
+#include <flint.h>
+#include <fmpz.h>
+*/
+import "C"
 
 // An Int represents a signed multi-precision integer.  The
 // zero value for an Int represents the value 0.
@@ -48,23 +51,31 @@ func (z *Int) Set(x *Int) *Int {
 // SetInt64 sets z = x and returns z.
 func (z *Int) SetInt64(x int64) *Int {
 	// TODO(rsc): more work on 32-bit platforms
-	C.fmpz_set_si((*C.fmpz)(z), C.long(x))
+	C.fmpz_set_si((*C.fmpz)(z), C.slong(x))
 	return z
 }
 
 // SetString interprets s as a number in the given base
 // and sets z to that value.  The base must be in the range [2,36].
 // SetString returns an error if s cannot be parsed or the base is invalid.
-func (z *Int) SetString(s string, base int) error {
-	if base < 2 || base > 36 {
-		return os.ErrInvalid
+func (z *Int) SetString(s string, base int) (*Int, bool) {
+	if base != 0 && (base < 2 || base > 36) {
+		return nil, false
+	}
+	// Skip leading + as mpz_set_str doesn't understand them
+	if len(s) > 1 && s[0] == '+' {
+		s = s[1:]
+	}
+	// mpz_set_str incorrectly parses "0x" and "0b" as valid
+	if base == 0 && len(s) == 2 && s[0] == '0' && (s[1] == 'x' || s[1] == 'X' || s[1] == 'b' || s[1] == 'B') {
+		return nil, false
 	}
 	p := C.CString(s)
 	defer C.free(unsafe.Pointer(p))
 	if C.fmpz_set_str((*C.fmpz)(z), p, C.int(base)) < 0 {
-		return os.ErrInvalid
+		return nil, false
 	}
-	return nil
+	return z, true
 }
 
 // String returns the decimal representation of z.
@@ -134,6 +145,125 @@ func (z *Int) Neg(x *Int) *Int {
 // Abs sets z to the absolute value of x and returns z.
 func (z *Int) Abs(x *Int) *Int {
 	C.fmpz_abs((*C.fmpz)(z), (*C.fmpz)(x))
+	return z
+}
+
+// Sign returns:
+//
+//	-1 if x <  0
+//	 0 if x == 0
+//	+1 if x >  0
+//
+func (z *Int) Sign() int {
+	return int(C.fmpz_sgn((*C.fmpz)(z)))
+}
+
+// Cmp compares z and y and returns:
+//
+//   -1 if z <  y
+//    0 if z == y
+//   +1 if z >  y
+//
+func (z *Int) Cmp(y *Int) (r int) {
+	r = int(C.fmpz_cmp((*C.fmpz)(z), (*C.fmpz)(y)))
+	if r < 0 {
+		r = -1
+	} else if r > 0 {
+		r = 1
+	}
+	return
+}
+
+// Rsh sets z = x >> n and returns z.
+func (z *Int) Rsh(x *Int, n uint) *Int {
+	C.fmpz_fdiv_q_2exp((*C.fmpz)(z), (*C.fmpz)(x), C.ulong(n))
+	return z
+}
+
+// BitLen returns the length of the absolute value of z in bits.
+// The bit length of 0 is 0.
+func (z *Int) BitLen() int {
+	if z.Sign() == 0 {
+		return 0
+	}
+	return int(C.fmpz_sizeinbase((*C.fmpz)(z), 2))
+}
+
+// Jacobi returns the Jacobi symbol (x/y), either +1, -1, or 0.
+// The y argument must be an odd integer.
+func Jacobi(x, y *Int) int {
+	if C.fmpz_sgn((*C.fmpz)(y)) == 0 || C.fmpz_is_even((*C.fmpz)(y)) != 0 {
+		panic(fmt.Sprintf("big: invalid 2nd argument to Int.Jacobi: need odd integer but got %s", y))
+	}
+
+	return int(C.fmpz_jacobi((*C.fmpz)(x), (*C.fmpz)(y)))
+}
+
+// Mod sets z to the modulus x%y for y != 0 and returns z.
+// If y == 0, a division-by-zero run-time panic occurs.
+// Mod implements Euclidean modulus (unlike Go); see DivMod for more details.
+func (z *Int) Mod(x, y *Int) *Int {
+	y0 := y // save y
+	if z == y {
+		y0 = new(Int).Set(y)
+	}
+
+	C.fmpz_fdiv_r((*C.fmpz)(z), (*C.fmpz)(x), (*C.fmpz)(y))
+	if z.Sign() == -1 {
+		if y.Sign() == -1 {
+			z.Sub(z, y0)
+		} else {
+			z.Add(z, y0)
+		}
+	}
+
+	return z
+}
+
+// DivMod sets z to the quotient x div y and m to the modulus x mod y
+// and returns the pair (z, m) for y != 0.
+// If y == 0, a division-by-zero run-time panic occurs.
+//
+// DivMod implements Euclidean division and modulus (unlike Go):
+//
+//	q = x div y  such that
+//	m = x - y*q  with 0 <= m < |q|
+//
+// (See Raymond T. Boute, ``The Euclidean definition of the functions
+// div and mod''. ACM Transactions on Programming Languages and
+// Systems (TOPLAS), 14(2):127-144, New York, NY, USA, 4/1992.
+// ACM press.)
+// See QuoRem for T-division and modulus (like Go).
+//
+func (z *Int) DivMod(x, y, m *Int) (*Int, *Int) {
+	C.fmpz_fdiv_qr((*C.fmpz)(z), (*C.fmpz)(m), (*C.fmpz)(x), (*C.fmpz)(y))
+	return z, m
+}
+
+// GCD sets z to the greatest common divisor of a and b, which both must
+// be > 0, and returns z.
+// If x and y are not nil, GCD sets x and y such that z = a*x + b*y.
+// If either a or b is <= 0, GCD sets z = x = y = 0.
+func (z *Int) GCD(x, y, a, b *Int) *Int {
+	if a.Sign() <= 0 || b.Sign() <= 0 {
+		z.SetInt64(0)
+		if x != nil {
+			x.SetInt64(0)
+		}
+		if y != nil {
+			y.SetInt64(0)
+		}
+	} else if x == nil && y == nil {
+		C.fmpz_gcd((*C.fmpz)(z), (*C.fmpz)(a), (*C.fmpz)(b))
+	} else {
+		if x == nil {
+			x = NewInt(0)
+		}
+		if y == nil {
+			y = NewInt(0)
+		}
+		C.fmpz_xgcd((*C.fmpz)(z), (*C.fmpz)(x), (*C.fmpz)(y), (*C.fmpz)(a), (*C.fmpz)(b))
+	}
 	return z
 }
 
