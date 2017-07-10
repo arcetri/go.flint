@@ -7,6 +7,7 @@ package fmpz
 import (
 	"unsafe"
 	"fmt"
+	"runtime"
 )
 
 /*
@@ -25,15 +26,27 @@ type Int C.fmpz
 // NewInt returns a new Int initialized to x.
 func NewInt(x int64) *Int { return new(Int).SetInt64(x) }
 
+func destroy(z *Int) {
+	runtime.SetFinalizer(z, nil)
+	C.fmpz_clear((*C.fmpz)(z))
+}
+
+// Clear the allocated space used by the number
+//
+// This normally happens on a runtime.SetFinalizer call, but if you
+// want immediate deallocation you can call it.
+//
+// NB This is not part of big.Int
+func (z *Int) Clear() {
+	destroy(z)
+}
+
 // In Go a big.Int promises that the zero value is a 0, but
 // flint2 the zero value is a crash. We follow the flint2
 // approach here, so one has to initialize new(fmpz.Int).
 func (z *Int) doinit() {
 	C.fmpz_init((*C.fmpz)(z))
-}
-
-func (z *Int) destroy() {
-	C.fmpz_clear((*C.fmpz)(z))
+	runtime.SetFinalizer(z, destroy)
 }
 
 // Len returns the length of z in bits.  0 is considered to
